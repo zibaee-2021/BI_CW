@@ -2,6 +2,7 @@
 Some known localisation sequence motifs
 """
 
+
 def _has_MTS(seq):
     """
     Alternating hydrophobic and positively-charged residue, VKARIK etc
