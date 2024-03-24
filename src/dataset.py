@@ -32,28 +32,25 @@ def read_and_validate_all_fasta_and_label(subset_name: str):
 
 
 def build_features_for_all_proteins(cyto_valid_seqs):
-    features_ary = np.zeros((len(cyto_valid_seqs), 24), dtype=np.float32)
+    features_ary = np.zeros((len(cyto_valid_seqs), 69), dtype=np.float32)
 
     for i, cyto_valid_seq in enumerate(cyto_valid_seqs):
-        features = Features(cyto_valid_seq)
-        global_aa_comp = features.global_aa_comp()
-        global_aa_comp = np.array(list(global_aa_comp.values()))
-        features_ary[i, :20] = global_aa_comp * 10
 
-        mol_weight = features.mol_weight()
-        features_ary[i, 20] = mol_weight / 1000  # KDa
+        feats = Features(cyto_valid_seq)
 
-        # local_aa_comp = features.local_aa_comp()
+        features_ary[i, :20] = feats.global_aa_comp()
 
-        flexibility = features.flexibility()
-        mean_flex = np.mean(flexibility)
-        features_ary[i, 21] = int(round(mean_flex * 1000))
+        Nterm_50_aa_comp, Cterm_50_aa_comp = feats.local_aa_comp(cyto_valid_seq)
+        features_ary[i, 20:40] = Nterm_50_aa_comp
+        features_ary[i, 40:60] = Cterm_50_aa_comp
 
-        aromaticity = features.aromaticity()
-        features_ary[i, 22] = int(round(1000 * aromaticity))
-
-        isoelectric_point = features.isoelectric_point()
-        features_ary[i, 23] = int(round(isoelectric_point * 100))
+        features_ary[i, 60] = feats.mol_weight()
+        features_ary[i, 61] = feats.mean_flexibility()
+        features_ary[i, 62] = feats.aromaticity()
+        features_ary[i, 63] = feats.isoelectric_point()
+        features_ary[i, 64], features_ary[i, 65] = feats.net_charge_and_mnc()
+        features_ary[i, 66], features_ary[i, 67] = feats.total_charge_and_mtc()
+        features_ary[i, 68] = feats.mean_hydrophobicity()
 
     return features_ary
 
@@ -67,8 +64,10 @@ def add_label(feats_ary, label):
 
 if __name__ == '__main__':
 
-    load = True
-    # load = False
+    from time import time
+    start = time()
+    # load = True
+    load = False
 
     if load:
 
@@ -81,31 +80,33 @@ if __name__ == '__main__':
         labels = {cyto: 0, secreted: 1, mito: 2, nuclear: 3, other: 4}
 
         cyto_valid_seqs, cyto_lengths = read_and_validate_all_fasta_and_label(cyto)
-        # cyto_feats = build_features_for_all_proteins(cyto_valid_seqs)
-        # cyto_feats = add_label(cyto_feats, labels[cyto])
-        # print(f'Completed building labelled cyto features array')
-
-        mito_valid_seqs, mito_lengths = read_and_validate_all_fasta_and_label(mito)
-        # mito_feats = build_features_for_all_proteins(mito_valid_seqs)
-        # mito_feats = add_label(mito_feats, labels[mito])
-        # print(f'Completed building labelled {mito} features array')
+        cyto_feats = build_features_for_all_proteins(cyto_valid_seqs)
+        cyto_feats = add_label(cyto_feats, labels[cyto])
+        print(f'Completed building labelled cyto features array')
 
         sec_valid_seqs, sec_lengths = read_and_validate_all_fasta_and_label(secreted)
-        # sec_feats = build_features_for_all_proteins(sec_valid_seqs)
-        # sec_feats = add_label(sec_feats, labels[secreted])
-        # print(f'Completed building labelled {secreted} features array')
+        sec_feats = build_features_for_all_proteins(sec_valid_seqs)
+        sec_feats = add_label(sec_feats, labels[secreted])
+        print(f'Completed building labelled {secreted} features array')
+
+        mito_valid_seqs, mito_lengths = read_and_validate_all_fasta_and_label(mito)
+        mito_feats = build_features_for_all_proteins(mito_valid_seqs)
+        mito_feats = add_label(mito_feats, labels[mito])
+        print(f'Completed building labelled {mito} features array')
 
         nuc_valid_seqs, nuc_lengths = read_and_validate_all_fasta_and_label(nuclear)
-        # nuc_feats = build_features_for_all_proteins(nuc_valid_seqs)
-        # nuc_feats = add_label(nuc_feats, labels[nuclear])
-        # print(f'Completed building labelled {nuclear} features array')
+        nuc_feats = build_features_for_all_proteins(nuc_valid_seqs)
+        nuc_feats = add_label(nuc_feats, labels[nuclear])
+        print(f'Completed building labelled {nuclear} features array')
 
         other_valid_seqs, other_lengths = read_and_validate_all_fasta_and_label(other)
-        # other_feats = build_features_for_all_proteins(other_valid_seqs)
-        # other_feats = add_label(other_feats, labels[other])
-        # print(f'Completed building labelled {other} features array')
+        other_feats = build_features_for_all_proteins(other_valid_seqs)
+        other_feats = add_label(other_feats, labels[other])
+        print(f'Completed building labelled {other} features array')
 
-        # all_labelled_feats = np.concatenate((cyto_feats, mito_feats, sec_feats, nuc_feats, other_feats), axis=0)
+        all_labelled_feats = np.concatenate((cyto_feats, mito_feats, sec_feats, nuc_feats, other_feats), axis=0)
 
-        # np.savetxt('../datasets/all_labelled_feats.csv', all_labelled_feats, delimiter=",", fmt='%f')
+        np.savetxt('../datasets/all_labelled_feats.csv', all_labelled_feats, delimiter=",", fmt='%f')
 
+    print(f'Completed in {round(time() - start)} seconds')
+    

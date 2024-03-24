@@ -18,50 +18,55 @@ class Features:
             aa_compo = self._analysed_seq.get_amino_acids_percent()
         else:
             aa_compo = ProteinAnalysis(sequence).get_amino_acids_percent()
-
-        return {aa: round((100 * aa_comp), 1) for aa, aa_comp in aa_compo.items()}
+        glob_aa_comp = {aa: round((100 * aa_comp), 1) for aa, aa_comp in aa_compo.items()}
+        global_aa_comp = np.array(list(glob_aa_comp.values()))
+        return global_aa_comp
 
     def local_aa_comp(self, sequence):
+        Nterm_50_seq, Cterm_50_seq = sequence[:50], sequence[-50:]
         Nterm_50_aa_comp, Cterm_50_aa_comp = 0, 0
-
         if len(sequence) >= 100:
-            Nterm_50_aa_comp = self.global_aa_comp(sequence[:50])
-            Cterm_50_aa_comp = self.global_aa_comp(sequence[-50:])
-
+            Nterm_50_aa_comp = self.global_aa_comp(Nterm_50_seq)
+            Cterm_50_aa_comp = self.global_aa_comp(Cterm_50_seq)
         return Nterm_50_aa_comp, Cterm_50_aa_comp
 
     def mol_weight(self, sequence=None):
         if sequence is None:
-            return round(self._analysed_seq.molecular_weight())
+            mw = round(self._analysed_seq.molecular_weight())
         else:
-            return round(ProteinAnalysis(sequence).molecular_weight())
+            mw = round(ProteinAnalysis(sequence).molecular_weight())
+        return mw / 1000  # KDa
 
     def aromaticity(self, sequence=None):
         if sequence is None:
-            return self._analysed_seq.aromaticity()
+            arom = self._analysed_seq.aromaticity()
         else:
-            return ProteinAnalysis(sequence).aromaticity()
+            arom = ProteinAnalysis(sequence).aromaticity()
+        return int(round(1000 * arom))
 
-    def flexibility(self, sequence=None):
+    def mean_flexibility(self, sequence=None):
         if sequence is None:
-            return self._analysed_seq.flexibility()
+            flex = self._analysed_seq.flexibility()
         else:
-            return ProteinAnalysis(sequence).flexibility()
+            flex = ProteinAnalysis(sequence).flexibility()
+        mean_flex = np.mean(flex)
+        return int(round(mean_flex * 1000))
 
     def isoelectric_point(self, sequence=None):
         if sequence is None:
-            return self._analysed_seq.isoelectric_point()
+            iep = self._analysed_seq.isoelectric_point()
         else:
-            return ProteinAnalysis(sequence).isoelectric_point()
+            iep = ProteinAnalysis(sequence).isoelectric_point()
+        return int(round(iep * 100))
 
     def net_charge_and_mnc(self, sequence=None):
         if sequence is None:
-            net_charge = self._analysed_seq.charge_at_pH(7.4)
-            return net_charge, net_charge / len(self.seq)
+            nc = self._analysed_seq.charge_at_pH(7.4)
+            return nc, nc / len(self.seq)
         else:
             anal_seq = ProteinAnalysis(sequence)
-            net_charge = anal_seq.charge_at_pH(7.4)
-            return net_charge, net_charge / len(sequence)
+            nc = anal_seq.charge_at_pH(7.4)
+            return round(100 * nc), round((nc / len(sequence)) * 100)
 
     def total_charge_and_mtc(self, sequence=None):
         if sequence is None:
@@ -72,7 +77,7 @@ class Features:
             se = ProteinAnalysis(sequence)
             aa_counts = se.count_amino_acids()
             tc = aa_counts['K'] + aa_counts['R'] + aa_counts['D'] + aa_counts['E']
-            return tc, tc / len(sequence)
+            return round(100 * tc), round((tc / len(sequence)) * 100)
 
     def mean_hydrophobicity(self, sequence=None):
         """Calculate the GRAVY (Grand Average of Hydropathy) according to Kyte and Doolitle, 1982."""
@@ -84,7 +89,17 @@ class Features:
 
 if __name__ == '__main__':
     fe = Features()
-    hydro = fe.mean_hydrophobicity(sequence='DSNQDSNQDS')
-    hydro2 = fe.mean_hydrophobicity(sequence='LLLVGILFWA')
-    hydro3 = fe.mean_hydrophobicity(sequence='DSNQDILFWA')
+    # hydro = fe.mean_hydrophobicity(sequence='DSNQDSNQDS')
+    # hydro2 = fe.mean_hydrophobicity(sequence='LLLVGILFWA')
+    # hydro3 = fe.mean_hydrophobicity(sequence='DSNQDILFWA')
+    # nc1, mnc1 = fe.net_charge_and_mnc(sequence='AAAAA')
+    # nc2, mnc2 = fe.net_charge_and_mnc(sequence='AAAEEE')
+    # nc3, mnc3 = fe.net_charge_and_mnc(sequence='AAAKKK')
+    # nc4, mnc4 = fe.net_charge_and_mnc(sequence='EEEKKK')
+
+    tc1, mtc1 = fe.total_charge_and_mtc(sequence='AAAAA')
+    tc2, mtc2 = fe.total_charge_and_mtc(sequence='AAAEEE')
+    tc3, mtc3 = fe.total_charge_and_mtc(sequence='AAAKKK')
+    tc4, mtc4 = fe.total_charge_and_mtc(sequence='EEEKKK')
+
     pass

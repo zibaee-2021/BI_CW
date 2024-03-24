@@ -12,14 +12,14 @@ from_nuc_B = 'M--L---L---F'
 to_mito   = 'MLSLRQSIRFFKPATRTLCSSRYLL'
 to_mito_B = '----R---R--K---R-----R---'
 
-to_plastid   = 'MVAMAMASLQSSMSSLSLSSNSFLGQPLSPITLSPFLQG'  # this would be class 'other'
+to_plastid   = 'MVAMAMASLQSSMSSLSLSSNSFLGQPLSPITLSPFLQG'  # present in all living things!
 to_plastid_B = '-------S--SS-SS-S-SS-S------S--T-S-----'
 
 to_ER =   'MMSFVSLLLVGILFWATEAEQLTKCEVFQ'
 to_ER_B = '------LLLVGILFWA-------K-E---'
 # ----------------------------------------------------------------------------------------
 # C-terminal only:
-to_peroxisomes = 'SKL'
+to_peroxisomes = 'SKL'  # ABSENT IN PROKARYOTES
 
 return_to_ER =   ['KDEL', 'RDEL', 'HDEL', 'ADEL', 'DDEL']
 
@@ -82,22 +82,25 @@ def _has_MTS(seq):
     alternating pattern of hydrophobic and positively charged residues that form an amphipathic helix (Bolender,
     Sickmann, Wagner, Meisinger, & Pfanner, 2008; Brix, Dietmeier, & Pfanner, 1997)."
     Manipulation of mitochondrial genes and mtDNA heteroplasmy Bacmana et al. Chapter 19, Methods in Cell Biology 2020
-    :param seq:
+    :param seq: Full sequence of protein.
     :return:
     """
+    seq_Nterm80 = seq[:80]
     # template = '----R---R--K---R-----R---'
-    positions_of_KR = [i for i, char in enumerate(seq) if char in ['K', 'R']]
+    positions_of_KR = [i for i, char in enumerate(seq_Nterm80) if char in ['K', 'R']]
     if len(positions_of_KR) < 5:
         return False
     else:
         pattern = r'([^\sKR]{2,3})(K|R)([^\sKR]{2,5})(K|R)([^\sKR]{2,5})(K|R)([^\sKR]{2,5})(K|R)([^\sKR]{2,5})(K|R)([^\sKR]{2,3})'
-        matches = re.finditer(pattern, seq)
+        if re.search(pattern, seq_Nterm80) is None:
+            print('No matching pattern')
+            return False
+        matches = re.finditer(pattern, seq_Nterm80)
         concatenated_segments = ''
 
+        print(f'matches is None {matches is None}')
         for match in matches:
             print(f"Match: {match.group()}, Start: {match.start()}, End: {match.end()}")
-            # concatenated_segments = ''.join([match.group(i) for i in range(2, 10, 2)])
-            # print(f"Concatenated hydrophobic segments: {concatenated_segments}")
             for i in range(1, 12, 2):  # Extract only the segments between K or R
                 concatenated_segments += match.group(i)
             hydr = Features(concatenated_segments).mean_hydrophobicity()
