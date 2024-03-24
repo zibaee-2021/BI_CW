@@ -1,13 +1,40 @@
 from unittest import TestCase
-from src import main
+from BI_CW.src import main
 import numpy as np
 from numpy import testing as npt
-from src.features import Features
+from BI_CW.src.features import Features
+from BI_CW.src import local_signals
 
 
 class TestMain(TestCase):
 
     # def setUp(self):
+
+    def test__has_return_to_ER_Cterm_signal(self):
+        true_er_sig = ['XXXKDEL', 'XXXRDEL', 'XXXHDEL', 'XXXADEL', 'XXXDDEL']
+        expected = True
+        actual_0 = local_signals._has_return_to_ER_Cterm_signal(true_er_sig[0])
+        self.assertEqual(expected, actual_0)
+        actual_1 = local_signals._has_return_to_ER_Cterm_signal(true_er_sig[1])
+        self.assertEqual(expected, actual_1)
+        actual_2 = local_signals._has_return_to_ER_Cterm_signal(true_er_sig[2])
+        self.assertEqual(expected, actual_2)
+        actual_3 = local_signals._has_return_to_ER_Cterm_signal(true_er_sig[3])
+        self.assertEqual(expected, actual_3)
+        actual_4 = local_signals._has_return_to_ER_Cterm_signal(true_er_sig[4])
+        self.assertEqual(expected, actual_4)
+
+        expected = False
+        actual = local_signals._has_return_to_ER_Cterm_signal('KDELX')
+        self.assertEqual(expected, actual)
+        expected = False
+        actual = local_signals._has_return_to_ER_Cterm_signal('KXDEL')
+        self.assertEqual(expected, actual)
+        expected = False
+        actual = local_signals._has_return_to_ER_Cterm_signal('EDEL')
+        self.assertEqual(expected, actual)
+
+
 
     def test_global_aa_comp(self):
         seq = 'CACKDKK'
@@ -46,4 +73,13 @@ class TestMain(TestCase):
         actual = features.mol_weight()
         self.assertEqual(expected, actual)
 
-    # def test_
+    def test__has_ER_Nterm_signal(self):
+        expected = True
+        actual = local_signals._has_ER_Nterm_signal('KMSFVSLLLVGILFWATEAEQLTKCEVFQ')
+        self.assertEqual(expected, actual)
+        pass
+
+    def test__has_MTS(self):
+        expected = True
+        actual = local_signals._has_MTS('MLSLRQSIRFFKPATRTLCSSRYLL')
+        self.assertEqual(expected, actual)

@@ -15,8 +15,6 @@ def split_train_test(ds):
     return X_train, X_test, y_train, y_test
 
 
-def train_5_fold_cv(X_train, y_train):
-
 
 def train_RFC(X_train, y_train):
 
