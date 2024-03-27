@@ -5,7 +5,6 @@ from numpy import testing as npt
 from BI_CW.src.features import Features
 from BI_CW.src import local_signals
 
-
 class TestMain(TestCase):
 
     # def setUp(self):
@@ -37,8 +36,8 @@ class TestMain(TestCase):
     def test_global_aa_comp(self):
         seq = 'CACKDKK'
         features = Features(seq)
-        expected = {'A': 14.3, 'C': 28.6, 'D': 14.3, 'E': 0, 'F': 0, 'G': 0, 'H': 0, 'I': 0,
-                    'K': 42.9, 'L': 0, 'M': 0, 'N': 0, 'P': 0, 'Q': 0, 'R': 0, 'S': 0, 'T': 0,
+        expected = {'A': 143, 'C': 286, 'D': 143, 'E': 0, 'F': 0, 'G': 0, 'H': 0, 'I': 0,
+                    'K': 429, 'L': 0, 'M': 0, 'N': 0, 'P': 0, 'Q': 0, 'R': 0, 'S': 0, 'T': 0,
                     'V': 0, 'W': 0, 'Y': 0}
         expected = np.array(list(expected.values()))
         actual = features.global_aa_comp(seq)
@@ -52,12 +51,12 @@ class TestMain(TestCase):
               'AAAAAAAAAAYYYYYYYYYY' \
               'YYYYYYYYYYYYYYYYYYYY' \
               'YYYYYYYYYYYYYYYYYYYY'
-        expected_Nterm = {'A': 100.0, 'C': 0, 'D': 0, 'E': 0, 'F': 0, 'G': 0, 'H': 0, 'I': 0,
+        expected_Nterm = {'A': 1000, 'C': 0, 'D': 0, 'E': 0, 'F': 0, 'G': 0, 'H': 0, 'I': 0,
                     'K': 0, 'L': 0, 'M': 0, 'N': 0, 'P': 0, 'Q': 0, 'R': 0, 'S': 0, 'T': 0,
                     'V': 0, 'W': 0, 'Y': 0}
         expected_Cterm = {'A': 0, 'C': 0, 'D': 0, 'E': 0, 'F': 0, 'G': 0, 'H': 0, 'I': 0,
                           'K': 0, 'L': 0, 'M': 0, 'N': 0, 'P': 0, 'Q': 0, 'R': 0, 'S': 0, 'T': 0,
-                          'V': 0, 'W': 0, 'Y': 100.0}
+                          'V': 0, 'W': 0, 'Y': 1000}
         expected = np.array(list(expected_Nterm.values())), np.array(list(expected_Cterm.values()))
         features = Features()
         actual = features.local_aa_comp(seq)
@@ -80,15 +79,48 @@ class TestMain(TestCase):
 
     def test__has_MTS(self):
         expected = True
-        actual = local_signals._has_MTS('MLSLRQSIRFFKPATRTLCSSRYLL')
+        actual = local_signals.has_MTS('MLSLRQSIRFFKPATRTLCSSRYLL')
         self.assertEqual(expected, actual)
 
         expected = False
-        actual = local_signals._has_MTS('MKKKRQSIRFFKPATRTLCSSRYLL')
+        actual = local_signals.has_MTS('MKKKRQSIRFFKPATRTLCSSRYLL')
         self.assertEqual(expected, actual)
         expected = False
-        actual = local_signals._has_MTS('QQQLRQSIRFFKPATRTLCSSRQQQ')
+        actual = local_signals.has_MTS('QQQLRQSIRFFKPATRTLCSSRQQQ')
         self.assertEqual(expected, actual)
         expected = False
-        actual = local_signals._has_MTS('MLSLEQSIRFFKPATRTLCSSRYLL')
+        actual = local_signals.has_MTS('MLSLEQSIRFFKPATRTLCSSRYLL')
         self.assertEqual(expected, actual)
+
+    def test_has_secreted_signal(self):
+        expected = True
+        actual = local_signals.has_secreted_signal('MDSKGSSQKGSR'
+                                                   'LLLLLVVSNLLL'
+                                                   'CQGVVS')
+        self.assertEqual(expected, actual)
+
+    def test_has_nuclear_signal(self):
+        expected = True
+        actual = local_signals.has_nuclear_signal('KKKKK')
+        self.assertEqual(expected, actual)
+        actual = local_signals.has_nuclear_signal('KKKKKK')
+        self.assertEqual(expected, actual)
+        actual = local_signals.has_nuclear_signal('RRRRR')
+        self.assertEqual(expected, actual)
+        actual = local_signals.has_nuclear_signal('RRRRRR')
+        self.assertEqual(expected, actual)
+        actual = local_signals.has_nuclear_signal('KKKRRR')
+        self.assertEqual(expected, actual)
+        actual = local_signals.has_nuclear_signal('RRRKKK')
+        self.assertEqual(expected, actual)
+
+        expected = False
+        actual = local_signals.has_nuclear_signal('RRRR')
+        self.assertEqual(expected, actual)
+        actual = local_signals.has_nuclear_signal('KKKK')
+        self.assertEqual(expected, actual)
+        actual = local_signals.has_nuclear_signal('AKAKAK')
+        self.assertEqual(expected, actual)
+        actual = local_signals.has_nuclear_signal('AKAKAK')
+        self.assertEqual(expected, actual)
+
